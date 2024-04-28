@@ -23,6 +23,8 @@
         <maven-plugin-plugin.version>3.6.0</maven-plugin-plugin.version>
         <maven-core.version>3.9.6</maven-core.version>
         <javapoet.version>1.13.0</javapoet.version>
+        <snakeyaml.version>1.28</snakeyaml.version>
+        <hutool-all.version>5.8.27</hutool-all.version>
     </properties>
 
     <dependencies>
@@ -57,6 +59,16 @@
             <groupId>com.squareup</groupId>
             <artifactId>javapoet</artifactId>
             <version>${javapoet.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.yaml</groupId>
+            <artifactId>snakeyaml</artifactId>
+            <version>${snakeyaml.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>cn.hutool</groupId>
+            <artifactId>hutool-all</artifactId>
+            <version>${hutool-all.version}</version>
         </dependency>
     </dependencies>
 
