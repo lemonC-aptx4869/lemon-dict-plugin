@@ -29,6 +29,7 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.project.MavenProject;
 
 import javax.lang.model.element.Modifier;
 import java.io.File;
@@ -43,11 +44,20 @@ import java.util.Set;
 @Mojo(name = "dict-plugin", defaultPhase = LifecyclePhase.COMPILE)
 public class DictPlugin extends AbstractMojoPlugin {
     /**
-     * Location of the file.
+     * @doc 文件输出文件
      */
-    @Parameter(defaultValue = "${project.build.directory}", property = "outputDir", required = true)
+    @Parameter(defaultValue = "${project.build.directory}", property = "outputDirectory", required = true)
     private File outputDirectory;
-
+    /**
+     * @doc 源码输出文件
+     */
+    @Parameter(defaultValue = "${project.build.sourceDirectory}", property = "sourceDirectory", required = true)
+    private File sourceDirectory;
+    /**
+     * @doc 项目
+     */
+    @Parameter(property = "project", required = true, readonly = true)
+    private MavenProject project;
 
     public void execute() throws MojoExecutionException {
         Logger.LOG.info("DictPlugin start......");
@@ -63,7 +73,7 @@ public class DictPlugin extends AbstractMojoPlugin {
         dbConn.setUrl("jdbc:mysql://localhost:3306");
         dbConn.setUserName("root");
         dbConn.setPwd("abc123");
-        dictConfig.setDictSql("select type.TYPE_CODE as typeCode,dict.DICT_NAME as dictName,dict.DICT_VALUE as dictValue from dataassets_baseline.sym_dictionary_type_t type inner join dataassets_baseline.sym_dictionary_t dict on type.TID = dict.DICT_TYPE_ID");
+        dictConfig.setDictSql("select type.TYPE_CODE as typeCode,dict.DICT_NAME as dictName,dict.DICT_VALUE as dictValue from dataassets_baseline.sym_dictionary_type_t type inner join dataassets_baseline.sym_dictionary_t dict on type.TID = dict.DICT_TYPE_ID and TYPE_CODE = 'clzt'");
 
         //查询字典
         DbExecutor executor = new MysqlDbExecutor(dictConfig);
@@ -80,20 +90,25 @@ public class DictPlugin extends AbstractMojoPlugin {
                         .addModifiers(Modifier.PUBLIC);
                 enumTypeSpecBuilder.addField(String.class, dictConfig.getDictLabelField(), Modifier.PRIVATE);
                 enumTypeSpecBuilder.addField(Object.class, dictConfig.getDictValueField(), Modifier.PRIVATE);
-                enumTypeSpecBuilder.addMethod(MethodSpec.constructorBuilder()
-                        .addParameter(String.class, dictConfig.getDictLabelField())
-                        .addParameter(Object.class, dictConfig.getDictValueField())
-                        .addStatement("this.$N = $N", dictConfig.getDictLabelField(), dictConfig.getDictLabelField())
-                        .addStatement("this.$N = $N", dictConfig.getDictValueField(), dictConfig.getDictValueField())
-                        .build());
+                enumTypeSpecBuilder.addMethod(
+                        MethodSpec.constructorBuilder()
+                                .addParameter(String.class, dictConfig.getDictLabelField())
+                                .addParameter(Object.class, dictConfig.getDictValueField())
+                                .addStatement("this.$N = $N", dictConfig.getDictLabelField(), dictConfig.getDictLabelField())
+                                .addStatement("this.$N = $N", dictConfig.getDictValueField(), dictConfig.getDictValueField())
+                                .build()
+                );
                 dictDataMap.get(typeCode).stream().forEach(dictData -> {
                     Logger.LOG.info("dictData====>" + dictData);
-                    enumTypeSpecBuilder.addEnumConstant(CommonUtil.toConstantLabel(dictData.getDictName()), TypeSpec.anonymousClassBuilder("$S,$S", dictData.getDictName(), dictData.getDictValue())
-                            .build());
+                    enumTypeSpecBuilder.addEnumConstant(
+                            CommonUtil.toConstantLabel(dictData.getDictName()),
+                            TypeSpec.anonymousClassBuilder("$S,$S", dictData.getDictName(), dictData.getDictValue()).build()
+                    );
                 });
                 JavaFile javaFile = JavaFile.builder(dictConfig.getOutputPackName(), enumTypeSpecBuilder.build()).build();
-                if (!outputDirectory.exists()) outputDirectory.mkdirs();
-                javaFile.writeTo(outputDirectory);
+                if (dictConfig.getOverride()) sourceDirectory.deleteOnExit();
+                if (!sourceDirectory.exists()) sourceDirectory.mkdirs();
+                javaFile.writeTo(sourceDirectory);
             } catch (IOException e) {
                 Logger.LOG.error(e);
                 throw new RuntimeException(e);

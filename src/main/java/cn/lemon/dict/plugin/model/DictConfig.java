@@ -8,6 +8,15 @@ public class DictConfig {
     private String dictValueField;
     private String dictSql;
     private String outputPackName;
+    private Boolean isOverride;
+
+    public Boolean getOverride() {
+        return isOverride;
+    }
+
+    public void setOverride(Boolean override) {
+        isOverride = override;
+    }
 
     public String getOutputPackName() {
         return outputPackName;
