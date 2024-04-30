@@ -48,7 +48,7 @@ public class DictPlugin extends AbstractMojoPlugin {
     /**
      * @doc 文件输出
      */
-    @Parameter(defaultValue = "${project.build.directory}/generated-sources/annotations",property = "targetDirectory")
+    @Parameter(defaultValue = "${project.build.directory}/generated-sources/annotations", property = "targetDirectory")
     private File generateSourceDir;
     /**
      * @doc 项目
@@ -62,13 +62,15 @@ public class DictPlugin extends AbstractMojoPlugin {
     private File config;
 
     public void execute() throws MojoExecutionException {
-        Logger.LOG.info("readConfig\t");
-
+        Logger.LOG.info("---------------------------------parse config---------------------------------");
         DictConfig dictConfig = CommonUtil.readConfig(config);
+        Logger.LOG.info("---------------------------------parse config---------------------------------");
         //查询字典
+        Logger.LOG.info("connecting database......");
         DbExecutor executor = new RelationalDbExecutor(dictConfig);
         Map<String, Set<DictData>> dictDataMap = executor.dictSearch();
         //生成代码
+        Logger.LOG.info("---------------------------------generate source---------------------------------");
         dictDataMap.keySet().stream().forEach(typeCode -> {
             try {
                 String className = CommonUtil.toHump(typeCode);
@@ -76,8 +78,8 @@ public class DictPlugin extends AbstractMojoPlugin {
                 Logger.LOG.info("className\t" + className);
                 TypeSpec.Builder enumTypeSpecBuilder = TypeSpec.enumBuilder(className)
                         .addModifiers(Modifier.PUBLIC);
-                enumTypeSpecBuilder.addField(String.class, dictConfig.getDictLabelField(), Modifier.PRIVATE);
-                enumTypeSpecBuilder.addField(Object.class, dictConfig.getDictValueField(), Modifier.PRIVATE);
+                enumTypeSpecBuilder.addField(String.class, CommonUtil.toHump(dictConfig.getDictLabelField()), Modifier.PRIVATE);
+                enumTypeSpecBuilder.addField(Object.class, CommonUtil.toHump(dictConfig.getDictValueField()), Modifier.PRIVATE);
                 enumTypeSpecBuilder.addMethod(
                         MethodSpec.constructorBuilder()
                                 .addParameter(String.class, dictConfig.getDictLabelField())
@@ -89,7 +91,7 @@ public class DictPlugin extends AbstractMojoPlugin {
                 dictDataMap.get(typeCode).stream().forEach(dictData -> {
                     Logger.LOG.info("dictData\t" + dictData);
                     enumTypeSpecBuilder.addEnumConstant(
-                            CommonUtil.toConstantLabel(dictData.getDictName()),
+                            CommonUtil.toConstantLabel(dictData.getTypeCode() + "_" + dictData.getDictValue()),
                             TypeSpec.anonymousClassBuilder("$S,$S", dictData.getDictName(), dictData.getDictValue()).build()
                     );
                 });

@@ -1,6 +1,5 @@
 package cn.lemon.dict.plugin.jdbc;
 
-import cn.lemon.dict.plugin.Logger;
 import cn.lemon.dict.plugin.model.DictConfig;
 import cn.lemon.dict.plugin.model.DictData;
 
@@ -21,7 +20,6 @@ public class RelationalDbExecutor implements DbExecutor {
     public Map<String, Set<DictData>> dictSearch() {
         Connection conn = null;
         try {
-            Logger.LOG.info("conn......");
             Class.forName(dictConfig.getDbConn().getJdbcDriverClassName());
             conn = DriverManager.getConnection(dictConfig.getDbConn().getUrl(), dictConfig.getDbConn().getUserName(), dictConfig.getDbConn().getPwd());
 

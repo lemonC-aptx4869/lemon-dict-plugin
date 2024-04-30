@@ -47,7 +47,6 @@ public class CommonUtil {
             Document document = XmlUtil.readXML(config);
             Element root = document.getDocumentElement();
 
-            Logger.LOG.info("parse config......");
             DictConfig dictConfig = new DictConfig();
             //db-conn
             Element dbConnNode = (Element) root.getElementsByTagName("conn").item(0);
@@ -78,8 +77,7 @@ public class CommonUtil {
             //override
             Node overrideNode = root.getElementsByTagName("override").item(0);
             dictConfig.setOverride(Boolean.getBoolean(overrideNode.getTextContent()));
-
-            Logger.LOG.info("dictConfig\t" + dictConfig);
+            Logger.LOG.info(dictConfig.toString());
             return dictConfig;
         } catch (Exception e) {
             throw new RuntimeException(e);
