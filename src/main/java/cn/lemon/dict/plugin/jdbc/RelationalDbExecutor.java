@@ -1,16 +1,18 @@
 package cn.lemon.dict.plugin.jdbc;
 
 import cn.lemon.dict.plugin.Logger;
-import cn.lemon.dict.plugin.model.DbConn;
 import cn.lemon.dict.plugin.model.DictConfig;
 import cn.lemon.dict.plugin.model.DictData;
 
 import java.sql.*;
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
-public abstract class RelationalDbExecutor implements DbExecutor {
+public class RelationalDbExecutor implements DbExecutor {
 
-    private DictConfig dictConfig;
+    protected DictConfig dictConfig;
 
     public RelationalDbExecutor(DictConfig dictConfig) {
         this.dictConfig = dictConfig;

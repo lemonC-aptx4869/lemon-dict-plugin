@@ -8,14 +8,14 @@ public class DictConfig {
     private String dictValueField;
     private String dictSql;
     private String outputPackName;
-    private Boolean isOverride;
+    private boolean override;
 
-    public Boolean getOverride() {
-        return isOverride;
+    public boolean isOverride() {
+        return override;
     }
 
-    public void setOverride(Boolean override) {
-        isOverride = override;
+    public void setOverride(boolean override) {
+        this.override = override;
     }
 
     public String getOutputPackName() {
@@ -64,5 +64,18 @@ public class DictConfig {
 
     public void setDictSql(String dictSql) {
         this.dictSql = dictSql;
+    }
+
+    @Override
+    public String toString() {
+        return "DictConfig{" +
+                "dbConn=" + dbConn +
+                ", typeCodeField='" + typeCodeField + '\'' +
+                ", dictLabelField='" + dictLabelField + '\'' +
+                ", dictValueField='" + dictValueField + '\'' +
+                ", dictSql='" + dictSql + '\'' +
+                ", outputPackName='" + outputPackName + '\'' +
+                ", override=" + override +
+                '}';
     }
 }

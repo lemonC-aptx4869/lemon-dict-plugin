@@ -17,7 +17,7 @@ package cn.lemon.dict.plugin;
  */
 
 import cn.lemon.dict.plugin.jdbc.DbExecutor;
-import cn.lemon.dict.plugin.jdbc.MysqlDbExecutor;
+import cn.lemon.dict.plugin.jdbc.RelationalDbExecutor;
 import cn.lemon.dict.plugin.model.DictConfig;
 import cn.lemon.dict.plugin.model.DictData;
 import com.squareup.javapoet.JavaFile;
@@ -38,18 +38,18 @@ import java.util.Set;
 /**
  * Goal which touches a timestamp file.
  */
-@Mojo(name = "dict-plugin", defaultPhase = LifecyclePhase.GENERATE_SOURCES)
+@Mojo(name = "dict-plugin", defaultPhase = LifecyclePhase.COMPILE)
 public class DictPlugin extends AbstractMojoPlugin {
-    /**
-     * @doc 文件输出文件
-     */
-    @Parameter(defaultValue = "${project.build.directory}", property = "targetDirectory")
-    private File outputDirectory;
     /**
      * @doc 源码输出文件
      */
     @Parameter(defaultValue = "${project.basedir}/src/", property = "sourceDirectory")
     private File sourceDirectory;
+    /**
+     * @doc 文件输出
+     */
+    @Parameter(defaultValue = "${project.build.directory}/generated-sources/annotations",property = "targetDirectory")
+    private File generateSourceDir;
     /**
      * @doc 项目
      */
@@ -58,36 +58,22 @@ public class DictPlugin extends AbstractMojoPlugin {
     /**
      * @doc 配置文件
      */
-    @Parameter(defaultValue = "lemon-dict/config.xml")
+    @Parameter(defaultValue = "${project.basedir}/src/main/resources/lemon-dict/config.xml", required = true)
     private File config;
 
     public void execute() throws MojoExecutionException {
-        Logger.LOG.info("DictPlugin start......");
+        Logger.LOG.info("readConfig\t");
 
         DictConfig dictConfig = CommonUtil.readConfig(config);
-//        DbConn dbConn = new DbConn();
-//        dictConfig.setDbConn(dbConn);
-//        dictConfig.setTypeCodeField("typeCode");
-//        dictConfig.setDictLabelField("dictName");
-//        dictConfig.setDictValueField("dictValue");
-//        dictConfig.setOutputPackName("cn.lemon.dict.enums");
-//        dbConn.setJdbcDriverClassName("com.mysql.cj.jdbc.Driver");
-//        dbConn.setUrl("jdbc:mysql://localhost:3306");
-//        dbConn.setUserName("root");
-//        dbConn.setPwd("abc123");
-//        dictConfig.setDictSql("select type.TYPE_CODE as typeCode,dict.DICT_NAME as dictName,dict.DICT_VALUE as dictValue from dataassets_baseline.sym_dictionary_type_t type inner join dataassets_baseline.sym_dictionary_t dict on type.TID = dict.DICT_TYPE_ID and TYPE_CODE = 'clzt'");
-
         //查询字典
-        DbExecutor executor = new MysqlDbExecutor(dictConfig);
+        DbExecutor executor = new RelationalDbExecutor(dictConfig);
         Map<String, Set<DictData>> dictDataMap = executor.dictSearch();
-
         //生成代码
         dictDataMap.keySet().stream().forEach(typeCode -> {
-            Logger.LOG.info("typeCode====>" + typeCode);
             try {
                 String className = CommonUtil.toHump(typeCode);
                 className = className.substring(0, 1).toUpperCase() + className.substring(1).toLowerCase();
-                Logger.LOG.info("className====>" + className);
+                Logger.LOG.info("className\t" + className);
                 TypeSpec.Builder enumTypeSpecBuilder = TypeSpec.enumBuilder(className)
                         .addModifiers(Modifier.PUBLIC);
                 enumTypeSpecBuilder.addField(String.class, dictConfig.getDictLabelField(), Modifier.PRIVATE);
@@ -101,21 +87,20 @@ public class DictPlugin extends AbstractMojoPlugin {
                                 .build()
                 );
                 dictDataMap.get(typeCode).stream().forEach(dictData -> {
-                    Logger.LOG.info("dictData====>" + dictData);
+                    Logger.LOG.info("dictData\t" + dictData);
                     enumTypeSpecBuilder.addEnumConstant(
                             CommonUtil.toConstantLabel(dictData.getDictName()),
                             TypeSpec.anonymousClassBuilder("$S,$S", dictData.getDictName(), dictData.getDictValue()).build()
                     );
                 });
                 JavaFile javaFile = JavaFile.builder(dictConfig.getOutputPackName(), enumTypeSpecBuilder.build()).build();
-                if (dictConfig.getOverride()) sourceDirectory.deleteOnExit();
-                if (!sourceDirectory.exists()) sourceDirectory.mkdirs();
-                javaFile.writeTo(sourceDirectory);
+                if (dictConfig.isOverride()) generateSourceDir.deleteOnExit();
+                if (!generateSourceDir.exists()) generateSourceDir.mkdirs();
+                javaFile.writeTo(generateSourceDir);
             } catch (IOException e) {
                 Logger.LOG.error(e);
                 throw new RuntimeException(e);
             }
         });
-        Logger.LOG.info("DictPlugin end......");
     }
 }

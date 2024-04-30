@@ -39,4 +39,14 @@ public class DbConn {
     public void setUrl(String url) {
         this.url = url;
     }
+
+    @Override
+    public String toString() {
+        return "DbConn{" +
+                "jdbcDriverClassName='" + jdbcDriverClassName + '\'' +
+                ", userName='" + userName + '\'' +
+                ", pwd='" + pwd + '\'' +
+                ", url='" + url + '\'' +
+                '}';
+    }
 }
