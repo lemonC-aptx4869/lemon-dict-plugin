@@ -51,7 +51,7 @@ public class DictPlugin extends AbstractMojoPlugin {
 
     @SneakyThrows
     public void execute() {
-        Logger.LOG.info("=================================resolver config ================================== ");
+        Logger.LOG.info(" ================================= resolver config ================================== ");
         DictConfig dictConfig = CommonUtil.parseDictXml(xmlConfig);
         Logger.LOG.info(dictConfig.toString());
         dictConfig.getDictConfigs().stream().forEach(dictConfigNode -> {
