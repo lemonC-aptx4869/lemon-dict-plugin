@@ -85,7 +85,7 @@ public class DictPlugin extends AbstractMojoPlugin {
                 dictDataMap.get(dictType).stream().forEach(dictData -> {
                     Logger.LOG.info("dictData\t" + dictData);
                     enumTypeSpecBuilder.addEnumConstant(
-                            CommonUtil.toConstantLabel(dictType.getTypeCode() + "_" + dictData.getDictValue()),
+                            CommonUtil.toConstantLabel(dictType.getTypeCode() + "_" + dictData.getDictName()),
                             TypeSpec.anonymousClassBuilder("$S,$S", dictData.getDictName(), dictData.getDictValue()).build()
                     );
                 });
