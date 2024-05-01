@@ -8,8 +8,10 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import java.io.File;
-import java.util.LinkedList;
-import java.util.List;
+import java.math.BigDecimal;
+import java.sql.Types;
+import java.time.LocalDateTime;
+import java.util.*;
 
 /**
  * @Description: 通用工具类
@@ -26,13 +28,14 @@ public class CommonUtil {
      */
     public static String toHump(String source, boolean isClass) {
         StringBuilder strBuilder = new StringBuilder();
+        source = source.toLowerCase();
         if (source.contains("_")) {
             String[] tmp = source.split("_");
             strBuilder.append(tmp[0]);
             strBuilder.append(tmp[1].substring(0, 1).toUpperCase() + tmp[1].substring(1));
-            return isClass ? strBuilder.substring(0, 1).toUpperCase() + strBuilder.substring(1) : strBuilder.toString();
+            return isClass ? (strBuilder.substring(0, 1).toUpperCase() + strBuilder.substring(1)) : strBuilder.toString();
         } else {
-            return isClass ? source.substring(0, 1).toUpperCase() + source.substring(1) : source;
+            return isClass ? (source.substring(0, 1).toUpperCase() + source.substring(1)) : source;
         }
     }
 
@@ -74,5 +77,57 @@ public class CommonUtil {
         }
         dictConfig.setDictConfigs(dictConfigs);
         return dictConfig;
+    }
+
+
+    public static Class<?> convertToJavaType(Integer colType) {
+        if (colType == null) return null;
+        switch (colType) {
+            case Types.ARRAY:
+                return ArrayList.class;
+            case Types.BIT:
+                return Short.class;
+            case Types.BIGINT:
+                return Long.class;
+            case Types.BOOLEAN:
+                return Boolean.class;
+            case Types.DATE:
+                return Date.class;
+            case Types.TIME:
+            case Types.TIMESTAMP:
+            case Types.TIME_WITH_TIMEZONE:
+            case Types.TIMESTAMP_WITH_TIMEZONE:
+                return LocalDateTime.class;
+            case Types.DECIMAL:
+            case Types.NUMERIC:
+                return BigDecimal.class;
+            case Types.DOUBLE:
+                return Double.class;
+            case Types.FLOAT:
+                return Float.class;
+            case Types.INTEGER:
+            case Types.SMALLINT:
+            case Types.TINYINT:
+                return Integer.class;
+            default:
+                return String.class;
+        }
+    }
+
+
+    public static void deleteFile(File file) {
+        StringBuilder msg = new StringBuilder();
+        msg.append(" delete ");
+        msg.append(file.isDirectory() ? " directory: " : " file: ");
+        msg.append(file.getAbsolutePath());
+        Logger.LOG.info(msg.toString());
+        if (file.isDirectory()) {
+            File[] files = file.listFiles();
+            for (int i = 0; i < files.length; i++) {
+                deleteFile(files[i]);
+            }
+        } else {
+            file.delete();
+        }
     }
 }

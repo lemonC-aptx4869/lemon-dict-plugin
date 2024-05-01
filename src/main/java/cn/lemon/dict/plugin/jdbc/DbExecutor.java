@@ -1,6 +1,7 @@
 package cn.lemon.dict.plugin.jdbc;
 
 import cn.lemon.dict.plugin.model.DictData;
+import cn.lemon.dict.plugin.model.DictType;
 
 import java.util.Map;
 import java.util.Set;
@@ -17,5 +18,5 @@ public interface DbExecutor {
      * @Author: lemonC
      * @Date: 2024/5/1
      */
-    Map<String, Set<DictData>> dictSearch();
+    Map<DictType, Set<DictData>> dictSearch();
 }

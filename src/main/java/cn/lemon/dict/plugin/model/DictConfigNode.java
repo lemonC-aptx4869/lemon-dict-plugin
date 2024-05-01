@@ -18,6 +18,4 @@ public class DictConfigNode {
     private String dictSql;
     //输出包名
     private String outputPackName;
-    //是否清空包名重新生成
-    private boolean override;
 }

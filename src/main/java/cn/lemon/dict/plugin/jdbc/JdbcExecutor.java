@@ -1,16 +1,13 @@
 package cn.lemon.dict.plugin.jdbc;
 
+import cn.hutool.core.util.ObjectUtil;
+import cn.lemon.dict.plugin.CommonUtil;
 import cn.lemon.dict.plugin.model.DictConfigNode;
 import cn.lemon.dict.plugin.model.DictData;
+import cn.lemon.dict.plugin.model.DictType;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.Statement;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.sql.*;
+import java.util.*;
 
 /**
  * @Description: 关系型数据库查询实现
@@ -33,8 +30,8 @@ public class JdbcExecutor implements DbExecutor {
      * @Author: lemonC
      * @Date: 2024/5/1
      */
-    public Map<String, Set<DictData>> dictSearch() {
-        Map<String, Set<DictData>> dictMap = new HashMap<>();
+    public Map<DictType, Set<DictData>> dictSearch() {
+        Map<DictType, Set<DictData>> dictMap = new HashMap<>();
         try {
             //加载驱动
             Class.forName(dictConfigNode.getDbConn().getJdbcDriverClassName());
@@ -47,18 +44,36 @@ public class JdbcExecutor implements DbExecutor {
             statement.execute(dictConfigNode.getDictSql());
             ResultSet rs = statement.getResultSet();
             //转换对象
-            Map<String, Set<DictData>> dictDataMap = new HashMap();
             while (rs.next()) {
-                String typeCode = rs.getString(dictConfigNode.getTypeCodeField());
-                if (!dictDataMap.containsKey(typeCode)) dictDataMap.put(typeCode, new HashSet());
-
+                ResultSetMetaData rsm = rs.getMetaData();
                 DictData dictData = new DictData();
-                dictData.setTypeCode(typeCode);
-                dictData.setDictName(rs.getString(dictConfigNode.getDictLabelField()));
-                dictData.setDictValue(rs.getObject(dictConfigNode.getDictValueField()));
-                dictDataMap.get(typeCode).add(dictData);
+                DictType dictType = new DictType();
+                for (int i = 1; i <= rsm.getColumnCount(); i++) {
+                    String colName = rsm.getColumnName(i);
+                    //typeCode
+                    if (Objects.equals(colName, dictConfigNode.getTypeCodeField())) {
+                        dictType.setTypeCode(CommonUtil.toHump(rs.getString(colName), false));
+                    }
+                    //dictName
+                    if (Objects.equals(colName, dictConfigNode.getDictLabelField())) {
+                        dictData.setDictName(rs.getString(colName));
+                    }
+                    //dictCode
+                    if (Objects.equals(colName, dictConfigNode.getDictValueField())) {
+                        dictData.setDictValue(rs.getObject(colName));
+                    }
+                    //javaType
+                    if (ObjectUtil.isNotEmpty(dictData.getDictValue())) {
+                        dictType.setJavaType(CommonUtil.convertToJavaType(rsm.getColumnType(i)));
+                    }
+                }
+                if (ObjectUtil.isNotEmpty(dictType.getTypeCode())) {
+                    if (!dictMap.containsKey(dictType)) {
+                        dictMap.put(dictType, new HashSet<>());
+                    }
+                    dictMap.get(dictType).add(dictData);
+                }
             }
-            dictMap.putAll(dictDataMap);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

@@ -5,6 +5,7 @@ import cn.lemon.dict.plugin.jdbc.DbExecutor;
 import cn.lemon.dict.plugin.jdbc.JdbcExecutor;
 import cn.lemon.dict.plugin.model.DictConfig;
 import cn.lemon.dict.plugin.model.DictData;
+import cn.lemon.dict.plugin.model.DictType;
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeSpec;
@@ -57,21 +58,22 @@ public class DictPlugin extends AbstractMojoPlugin {
             //查询字典
             Logger.LOG.info("connecting database......");
             DbExecutor executor = new JdbcExecutor(dictConfigNode);
-            Map<String, Set<DictData>> dictDataMap = executor.dictSearch();
+            Map<DictType, Set<DictData>> dictDataMap = executor.dictSearch();
             //生成代码
             Logger.LOG.info(" ================================== generate source ================================== ");
-            dictDataMap.keySet().stream().forEach(typeCode -> {
+            dictDataMap.keySet().stream().forEach(dictType -> {
                 try {
-                    String className = CommonUtil.toHump(typeCode, true);
+                    String className = CommonUtil.toHump(dictType.getTypeCode(), true);
+                    Logger.LOG.info("dictType\t" + dictType);
                     Logger.LOG.info("className\t" + className);
                     TypeSpec.Builder enumTypeSpecBuilder = TypeSpec.enumBuilder(className)
                             .addModifiers(Modifier.PUBLIC);
                     enumTypeSpecBuilder.addField(String.class, "description", Modifier.PRIVATE);
-                    enumTypeSpecBuilder.addField(Object.class, "code", Modifier.PRIVATE);
+                    enumTypeSpecBuilder.addField(dictType.getJavaType(), "code", Modifier.PRIVATE);
                     enumTypeSpecBuilder.addMethod(
                             MethodSpec.constructorBuilder()
                                     .addParameter(String.class, "description")
-                                    .addParameter(Object.class, "code")
+                                    .addParameter(dictType.getJavaType(), "code")
                                     .addStatement("this.$N = $N", "description", "description")
                                     .addStatement("this.$N = $N", "code", "code")
                                     .build()
@@ -79,20 +81,19 @@ public class DictPlugin extends AbstractMojoPlugin {
                     enumTypeSpecBuilder.addMethod(
                             MethodSpec.methodBuilder("getDescription")
                                     .addModifiers(Modifier.PUBLIC)
-                                    .returns(Object.class)
+                                    .returns(dictType.getJavaType())
                                     .addStatement(" return this.description ")
                                     .build()
                     );
-                    dictDataMap.get(typeCode).stream().forEach(dictData -> {
+                    dictDataMap.get(dictType).stream().forEach(dictData -> {
                         Logger.LOG.info("dictData\t" + dictData);
                         enumTypeSpecBuilder.addEnumConstant(
-                                CommonUtil.toConstantLabel(dictData.getTypeCode() + "_" + dictData.getDictValue()),
+                                CommonUtil.toConstantLabel(dictType.getTypeCode() + "_" + dictData.getDictValue()),
                                 TypeSpec.anonymousClassBuilder("$S,$S", dictData.getDictName(), dictData.getDictValue()).build()
                         );
                     });
-                    JavaFile javaFile = JavaFile.builder(dictConfigNode.getOutputPackName(), enumTypeSpecBuilder.build()).build();
-                    if (dictConfigNode.isOverride()) generateSourceDir.deleteOnExit();
                     if (!generateSourceDir.exists()) generateSourceDir.mkdirs();
+                    JavaFile javaFile = JavaFile.builder(dictConfigNode.getOutputPackName(), enumTypeSpecBuilder.build()).build();
                     javaFile.writeTo(generateSourceDir);
                 } catch (IOException e) {
                     Logger.LOG.error(e);
