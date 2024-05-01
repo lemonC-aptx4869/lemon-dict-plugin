@@ -3,15 +3,11 @@ package cn.lemon.dict.plugin.model;
 import lombok.Data;
 import lombok.ToString;
 
+import java.util.List;
+
 @Data
 @ToString
 public class DictConfig {
 
-    private DbConn dbConn;
-    private String typeCodeField;
-    private String dictLabelField;
-    private String dictValueField;
-    private String dictSql;
-    private String outputPackName;
-    private boolean override;
+    List<DictConfigNode> dictConfigs;
 }

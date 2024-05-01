@@ -1,6 +1,6 @@
 package cn.lemon.dict.plugin.jdbc;
 
-import cn.lemon.dict.plugin.model.DictConfig;
+import cn.lemon.dict.plugin.model.DictConfigNode;
 import cn.lemon.dict.plugin.model.DictData;
 
 import java.sql.*;
@@ -11,33 +11,33 @@ import java.util.Set;
 
 public class RelationalDbExecutor implements DbExecutor {
 
-    protected DictConfig dictConfig;
+    protected DictConfigNode dictConfigNode;
 
-    public RelationalDbExecutor(DictConfig dictConfig) {
-        this.dictConfig = dictConfig;
+    public RelationalDbExecutor(DictConfigNode dictConfigNode) {
+        this.dictConfigNode = dictConfigNode;
     }
 
     public Map<String, Set<DictData>> dictSearch() {
         Connection conn = null;
         try {
-            Class.forName(dictConfig.getDbConn().getJdbcDriverClassName());
-            conn = DriverManager.getConnection(dictConfig.getDbConn().getUrl(), dictConfig.getDbConn().getUserName(), dictConfig.getDbConn().getPwd());
+            Class.forName(dictConfigNode.getDbConn().getJdbcDriverClassName());
+            conn = DriverManager.getConnection(dictConfigNode.getDbConn().getUrl(), dictConfigNode.getDbConn().getUserName(), dictConfigNode.getDbConn().getPwd());
 
             StringBuilder sqlBuilder = new StringBuilder();
-            sqlBuilder.append(dictConfig.getDictSql());
+            sqlBuilder.append(dictConfigNode.getDictSql());
             Statement statement = conn.createStatement();
             statement.execute(sqlBuilder.toString());
             ResultSet rs = statement.getResultSet();
 
             Map<String, Set<DictData>> dictDataMap = new HashMap<String, Set<DictData>>();
             while (rs.next()) {
-                String typeCode = rs.getString(dictConfig.getTypeCodeField());
+                String typeCode = rs.getString(dictConfigNode.getTypeCodeField());
                 if (!dictDataMap.containsKey(typeCode)) dictDataMap.put(typeCode, new HashSet<DictData>());
 
                 DictData dictData = new DictData();
                 dictData.setTypeCode(typeCode);
-                dictData.setDictName(rs.getString(dictConfig.getDictLabelField()));
-                dictData.setDictValue(rs.getObject(dictConfig.getDictValueField()));
+                dictData.setDictName(rs.getString(dictConfigNode.getDictLabelField()));
+                dictData.setDictValue(rs.getObject(dictConfigNode.getDictValueField()));
                 dictDataMap.get(typeCode).add(dictData);
             }
             return dictDataMap;

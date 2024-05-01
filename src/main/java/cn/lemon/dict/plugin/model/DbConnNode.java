@@ -5,7 +5,7 @@ import lombok.ToString;
 
 @Data
 @ToString
-public class DbConn {
+public class DbConnNode {
 
     private String jdbcDriverClassName;
     private String userName;
