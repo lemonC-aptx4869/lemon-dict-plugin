@@ -9,30 +9,43 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-public class RelationalDbExecutor implements DbExecutor {
+/**
+ * @Description: 关系型数据库查询实现
+ * @Author: lemonC
+ * @Date: 2024/5/1
+ */
+public class JdbcExecutor implements DbExecutor {
 
+    /**
+     * @doc 字典配置
+     */
     protected DictConfigNode dictConfigNode;
 
-    public RelationalDbExecutor(DictConfigNode dictConfigNode) {
+    public JdbcExecutor(DictConfigNode dictConfigNode) {
         this.dictConfigNode = dictConfigNode;
     }
 
+    /**
+     * @Description: 使用dictSql查询字典-jdbc实现
+     * @Author: lemonC
+     * @Date: 2024/5/1
+     */
     public Map<String, Set<DictData>> dictSearch() {
-        Connection conn = null;
         try {
             Class.forName(dictConfigNode.getDbConn().getJdbcDriverClassName());
-            conn = DriverManager.getConnection(dictConfigNode.getDbConn().getUrl(), dictConfigNode.getDbConn().getUserName(), dictConfigNode.getDbConn().getPwd());
-
-            StringBuilder sqlBuilder = new StringBuilder();
-            sqlBuilder.append(dictConfigNode.getDictSql());
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+        try (Connection conn = DriverManager.getConnection(dictConfigNode.getDbConn().getUrl(), dictConfigNode.getDbConn().getUserName(), dictConfigNode.getDbConn().getPwd())) {
+            //查询sql
             Statement statement = conn.createStatement();
-            statement.execute(sqlBuilder.toString());
+            statement.execute(dictConfigNode.getDictSql());
             ResultSet rs = statement.getResultSet();
-
-            Map<String, Set<DictData>> dictDataMap = new HashMap<String, Set<DictData>>();
+            //转换对象
+            Map<String, Set<DictData>> dictDataMap = new HashMap();
             while (rs.next()) {
                 String typeCode = rs.getString(dictConfigNode.getTypeCodeField());
-                if (!dictDataMap.containsKey(typeCode)) dictDataMap.put(typeCode, new HashSet<DictData>());
+                if (!dictDataMap.containsKey(typeCode)) dictDataMap.put(typeCode, new HashSet());
 
                 DictData dictData = new DictData();
                 dictData.setTypeCode(typeCode);
@@ -43,12 +56,6 @@ public class RelationalDbExecutor implements DbExecutor {
             return dictDataMap;
         } catch (Exception e) {
             throw new RuntimeException(e);
-        } finally {
-            try {
-                if (conn != null) conn.close();
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
-            }
         }
     }
 }

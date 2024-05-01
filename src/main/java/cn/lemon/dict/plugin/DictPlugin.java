@@ -2,7 +2,7 @@ package cn.lemon.dict.plugin;
 
 
 import cn.lemon.dict.plugin.jdbc.DbExecutor;
-import cn.lemon.dict.plugin.jdbc.RelationalDbExecutor;
+import cn.lemon.dict.plugin.jdbc.JdbcExecutor;
 import cn.lemon.dict.plugin.model.DictConfigNode;
 import cn.lemon.dict.plugin.model.DictData;
 import com.squareup.javapoet.JavaFile;
@@ -22,7 +22,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * @Description: 字典编译器
+ * @Description: maven自定义字典编译器
  * @Author: lemonC
  * @Date: 2024/4/30
  */
@@ -57,7 +57,7 @@ public class DictPlugin extends AbstractMojoPlugin {
         dictConfigNodes.stream().forEach(dictConfigNode -> {
             //查询字典
             Logger.LOG.info("connecting database......");
-            DbExecutor executor = new RelationalDbExecutor(dictConfigNode);
+            DbExecutor executor = new JdbcExecutor(dictConfigNode);
             Map<String, Set<DictData>> dictDataMap = executor.dictSearch();
             //生成代码
             Logger.LOG.info(" ================================== generate source ================================== ");

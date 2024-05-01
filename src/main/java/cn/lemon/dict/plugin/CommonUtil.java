@@ -10,9 +10,19 @@ import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
 
+/**
+ * @Description: 通用工具类
+ * @Author: lemonC
+ * @Date: 2024/5/1
+ */
 public class CommonUtil {
 
 
+    /**
+     * @Description: 转换驼峰：ab_cd ===> abCd
+     * @Author: lemonC
+     * @Date: 2024/5/1
+     */
     public static String toHump(String source) {
         StringBuilder strBuilder = new StringBuilder();
         if (source.contains("_")) {
@@ -25,6 +35,11 @@ public class CommonUtil {
         }
     }
 
+    /**
+     * @Description: 转换常量值：ab_cd ===> AB_CD、abCd ===> AB_CD
+     * @Author: lemonC
+     * @Date: 2024/5/1
+     */
     public static String toConstantLabel(String source) {
         StringBuilder strBuilder = new StringBuilder();
         if (source.contains("_")) {
@@ -42,6 +57,11 @@ public class CommonUtil {
     }
 
 
+    /**
+     * @Description: 解析字典xml文件成为字典配置
+     * @Author: lemonC
+     * @Date: 2024/5/1
+     */
     public static List<DictConfigNode> parseDictXml(File xmlConfig) {
         Element root = XmlUtil.readXML(xmlConfig).getDocumentElement();
         List<DictConfigNode> dictConfigs = new LinkedList<>();
