@@ -52,7 +52,7 @@ public class JdbcExecutor implements DbExecutor {
                     String colName = rsm.getColumnName(i);
                     //typeCode
                     if (Objects.equals(colName, dictConfigNode.getTypeCodeField())) {
-                        dictType.setTypeCode(CommonUtil.toHump(rs.getString(colName), false));
+                        dictType.setTypeCode(CommonUtil.toHump(rs.getString(colName), true));
                     }
                     //dictName
                     if (Objects.equals(colName, dictConfigNode.getDictLabelField())) {

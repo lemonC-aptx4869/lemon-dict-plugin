@@ -62,42 +62,39 @@ public class DictPlugin extends AbstractMojoPlugin {
             //生成代码
             Logger.LOG.info(" ================================== generate source ================================== ");
             dictDataMap.keySet().stream().forEach(dictType -> {
+                TypeSpec.Builder enumTypeSpecBuilder = TypeSpec.enumBuilder(dictType.getTypeCode())
+                        .addModifiers(Modifier.PUBLIC);
+                enumTypeSpecBuilder.addField(String.class, "description", Modifier.PRIVATE);
+                enumTypeSpecBuilder.addField(dictType.getJavaType(), "code", Modifier.PRIVATE);
+                enumTypeSpecBuilder.addMethod(
+                        MethodSpec.constructorBuilder()
+                                .addParameter(String.class, "description")
+                                .addParameter(dictType.getJavaType(), "code")
+                                .addStatement("this.$N = $N", "description", "description")
+                                .addStatement("this.$N = $N", "code", "code")
+                                .build()
+                );
+                enumTypeSpecBuilder.addMethod(
+                        MethodSpec.methodBuilder("getDescription")
+                                .addModifiers(Modifier.PUBLIC)
+                                .returns(dictType.getJavaType())
+                                .addStatement(" return this.description ")
+                                .build()
+                );
+                Logger.LOG.info("dictType\t" + dictType);
+                dictDataMap.get(dictType).stream().forEach(dictData -> {
+                    Logger.LOG.info("dictData\t" + dictData);
+                    enumTypeSpecBuilder.addEnumConstant(
+                            CommonUtil.toConstantLabel(dictType.getTypeCode() + "_" + dictData.getDictValue()),
+                            TypeSpec.anonymousClassBuilder("$S,$S", dictData.getDictName(), dictData.getDictValue()).build()
+                    );
+                });
+                if (!generateSourceDir.exists()) generateSourceDir.mkdirs();
                 try {
-                    String className = CommonUtil.toHump(dictType.getTypeCode(), true);
-                    Logger.LOG.info("dictType\t" + dictType);
-                    Logger.LOG.info("className\t" + className);
-                    TypeSpec.Builder enumTypeSpecBuilder = TypeSpec.enumBuilder(className)
-                            .addModifiers(Modifier.PUBLIC);
-                    enumTypeSpecBuilder.addField(String.class, "description", Modifier.PRIVATE);
-                    enumTypeSpecBuilder.addField(dictType.getJavaType(), "code", Modifier.PRIVATE);
-                    enumTypeSpecBuilder.addMethod(
-                            MethodSpec.constructorBuilder()
-                                    .addParameter(String.class, "description")
-                                    .addParameter(dictType.getJavaType(), "code")
-                                    .addStatement("this.$N = $N", "description", "description")
-                                    .addStatement("this.$N = $N", "code", "code")
-                                    .build()
-                    );
-                    enumTypeSpecBuilder.addMethod(
-                            MethodSpec.methodBuilder("getDescription")
-                                    .addModifiers(Modifier.PUBLIC)
-                                    .returns(dictType.getJavaType())
-                                    .addStatement(" return this.description ")
-                                    .build()
-                    );
-                    dictDataMap.get(dictType).stream().forEach(dictData -> {
-                        Logger.LOG.info("dictData\t" + dictData);
-                        enumTypeSpecBuilder.addEnumConstant(
-                                CommonUtil.toConstantLabel(dictType.getTypeCode() + "_" + dictData.getDictValue()),
-                                TypeSpec.anonymousClassBuilder("$S,$S", dictData.getDictName(), dictData.getDictValue()).build()
-                        );
-                    });
-                    if (!generateSourceDir.exists()) generateSourceDir.mkdirs();
                     JavaFile javaFile = JavaFile.builder(dictConfigNode.getOutputPackName(), enumTypeSpecBuilder.build()).build();
                     javaFile.writeTo(generateSourceDir);
                 } catch (IOException e) {
                     Logger.LOG.error(e);
-                    throw new RuntimeException(e);
                 }
             });
         });

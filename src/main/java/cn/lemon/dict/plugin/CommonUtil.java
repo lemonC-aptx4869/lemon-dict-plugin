@@ -28,7 +28,6 @@ public class CommonUtil {
      */
     public static String toHump(String source, boolean isClass) {
         StringBuilder strBuilder = new StringBuilder();
-        source = source.toLowerCase();
         if (source.contains("_")) {
             String[] tmp = source.split("_");
             strBuilder.append(tmp[0]);
