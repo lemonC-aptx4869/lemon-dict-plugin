@@ -24,15 +24,15 @@ public class CommonUtil {
      * @Author: lemonC
      * @Date: 2024/5/1
      */
-    public static String toHump(String source) {
+    public static String toHump(String source, boolean isClass) {
         StringBuilder strBuilder = new StringBuilder();
         if (source.contains("_")) {
             String[] tmp = source.split("_");
             strBuilder.append(tmp[0]);
-            strBuilder.append(tmp[1].substring(0, 1).toUpperCase() + tmp[1].substring(1).toLowerCase());
-            return strBuilder.toString();
+            strBuilder.append(tmp[1].substring(0, 1).toUpperCase() + tmp[1].substring(1));
+            return isClass ? strBuilder.substring(0, 1).toUpperCase() + strBuilder.substring(1) : strBuilder.toString();
         } else {
-            return source;
+            return isClass ? source.substring(0, 1).toUpperCase() + source.substring(1) : source;
         }
     }
 

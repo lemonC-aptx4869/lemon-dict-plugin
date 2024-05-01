@@ -62,8 +62,7 @@ public class DictPlugin extends AbstractMojoPlugin {
             Logger.LOG.info(" ================================== generate source ================================== ");
             dictDataMap.keySet().stream().forEach(typeCode -> {
                 try {
-                    String className = CommonUtil.toHump(typeCode);
-                    className = className.substring(0, 1).toUpperCase() + className.substring(1).toLowerCase();
+                    String className = CommonUtil.toHump(typeCode, true);
                     Logger.LOG.info("className\t" + className);
                     TypeSpec.Builder enumTypeSpecBuilder = TypeSpec.enumBuilder(className)
                             .addModifiers(Modifier.PUBLIC);
