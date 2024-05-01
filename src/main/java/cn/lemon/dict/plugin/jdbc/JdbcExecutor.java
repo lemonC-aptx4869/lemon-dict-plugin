@@ -3,7 +3,10 @@ package cn.lemon.dict.plugin.jdbc;
 import cn.lemon.dict.plugin.model.DictConfigNode;
 import cn.lemon.dict.plugin.model.DictData;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.Statement;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -31,7 +34,9 @@ public class JdbcExecutor implements DbExecutor {
      * @Date: 2024/5/1
      */
     public Map<String, Set<DictData>> dictSearch() {
+        Map<String, Set<DictData>> dictMap = new HashMap<>();
         try {
+            //加载驱动
             Class.forName(dictConfigNode.getDbConn().getJdbcDriverClassName());
         } catch (ClassNotFoundException e) {
             throw new RuntimeException(e);
@@ -53,9 +58,10 @@ public class JdbcExecutor implements DbExecutor {
                 dictData.setDictValue(rs.getObject(dictConfigNode.getDictValueField()));
                 dictDataMap.get(typeCode).add(dictData);
             }
-            return dictDataMap;
+            dictMap.putAll(dictDataMap);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+        return dictMap;
     }
 }

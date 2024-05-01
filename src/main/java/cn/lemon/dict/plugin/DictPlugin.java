@@ -3,7 +3,7 @@ package cn.lemon.dict.plugin;
 
 import cn.lemon.dict.plugin.jdbc.DbExecutor;
 import cn.lemon.dict.plugin.jdbc.JdbcExecutor;
-import cn.lemon.dict.plugin.model.DictConfigNode;
+import cn.lemon.dict.plugin.model.DictConfig;
 import cn.lemon.dict.plugin.model.DictData;
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
@@ -17,7 +17,6 @@ import org.apache.maven.project.MavenProject;
 import javax.lang.model.element.Modifier;
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -52,9 +51,9 @@ public class DictPlugin extends AbstractMojoPlugin {
     @SneakyThrows
     public void execute() {
         Logger.LOG.info("=================================resolver config ================================== ");
-        List<DictConfigNode> dictConfigNodes = CommonUtil.parseDictXml(xmlConfig);
-        Logger.LOG.info(dictConfigNodes.toString());
-        dictConfigNodes.stream().forEach(dictConfigNode -> {
+        DictConfig dictConfig = CommonUtil.parseDictXml(xmlConfig);
+        Logger.LOG.info(dictConfig.toString());
+        dictConfig.getDictConfigs().stream().forEach(dictConfigNode -> {
             //查询字典
             Logger.LOG.info("connecting database......");
             DbExecutor executor = new JdbcExecutor(dictConfigNode);

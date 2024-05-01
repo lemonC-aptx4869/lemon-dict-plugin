@@ -1,6 +1,7 @@
 package cn.lemon.dict.plugin;
 
 import cn.hutool.core.util.XmlUtil;
+import cn.lemon.dict.plugin.model.DictConfig;
 import cn.lemon.dict.plugin.model.DictConfigNode;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -62,14 +63,16 @@ public class CommonUtil {
      * @Author: lemonC
      * @Date: 2024/5/1
      */
-    public static List<DictConfigNode> parseDictXml(File xmlConfig) {
+    public static DictConfig parseDictXml(File xmlConfig) {
         Element root = XmlUtil.readXML(xmlConfig).getDocumentElement();
         List<DictConfigNode> dictConfigs = new LinkedList<>();
+        DictConfig dictConfig = new DictConfig();
         NodeList dictConfigNodes = root.getElementsByTagName("dictConfig");
         for (int i = 0; i < dictConfigNodes.getLength(); i++) {
             Node node = dictConfigNodes.item(i);
             dictConfigs.add(XmlUtil.xmlToBean(node, DictConfigNode.class));
         }
-        return dictConfigs;
+        dictConfig.setDictConfigs(dictConfigs);
+        return dictConfig;
     }
 }
